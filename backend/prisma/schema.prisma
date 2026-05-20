@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum QuestionCategory {
+  ACADEMIC
+  CAREER
+  PERSONALITY
+  LEARNING_STYLE
+  GOAL
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  SCALE
+  TRUE_FALSE
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(STUDENT)
+  createdAt DateTime @default(now())
+  answers          Answer[]
+  recommendations  Recommendation[]
+}
+
+model Department {
+  id               String  @id @default(cuid())
+  name             String  @unique
+  faculty          String
+  description      String
+  cutoffMark       Int     @map("cutoff_mark")
+  requiredSubjects String  @map("required_subjects")
+  difficultyLevel  String  @map("difficulty_level")
+  careerPaths      String  @map("career_paths")
+  studyDuration    String  @map("study_duration")
+  scoringRules     ScoringRule[]
+  recommendations  Recommendation[]
+}
+
+model Question {
+  id       String           @id @default(cuid())
+  question String
+  category QuestionCategory
+  type     QuestionType
+  weight   Int              @default(1)
+  answers  Answer[]
+}
+
+model Answer {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  questionId String   @map("question_id")
+  answer     String
+  score      Int
+  user       User     @relation(fields: [userId], references: [id])
+  question   Question @relation(fields: [questionId], references: [id])
+
+  @@unique([userId, questionId])
+}
+
+model Recommendation {
+  id                 String   @id @default(cuid())
+  userId             String   @map("user_id")
+  departmentId       String   @map("department_id")
+  compatibilityScore Float    @map("compatibility_score")
+  breakdown          String   @default("{}")
+  createdAt          DateTime @default(now())
+  user               User     @relation(fields: [userId], references: [id])
+  department         Department @relation(fields: [departmentId], references: [id])
+
+  @@unique([userId, departmentId])
+}
+
+model ScoringRule {
+  id           String     @id @default(cuid())
+  departmentId String     @map("department_id")
+  factor       String
+  weight       Int
+  department   Department @relation(fields: [departmentId], references: [id])
+}
