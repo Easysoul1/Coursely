@@ -6,9 +6,7 @@ import reactRefresh from "eslint-plugin-react-refresh";
 export default tseslint.config(
   { ignores: ["**/dist/**", "**/.next/**", "**/node_modules/**", "**/prisma/generated/**"] },
   {
-    extends: [
-      ...tseslint.configs.recommended,
-    ],
+    extends: [...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
       ecmaVersion: 2022,
