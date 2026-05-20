@@ -4,21 +4,17 @@ import { asyncWrap } from "../middleware/async-wrap";
 import { validate } from "../middleware/validate";
 import { authenticate } from "../middleware/auth";
 import { authorize } from "../middleware/roles";
-import {
-  createDepartmentSchema,
-  updateDepartmentSchema,
-  departmentQuerySchema,
-} from "../schemas/department.schema";
+import { createDepartmentSchema, updateDepartmentSchema } from "../schemas/department.schema";
 import { NotFoundError } from "../lib/errors";
 
 const router = Router();
 
 router.get(
   "/",
-  validate({ query: departmentQuerySchema }),
   asyncWrap(async (req: Request, res: Response) => {
-    const { faculty, difficulty } = req.query as any;
-    const where: any = {};
+    const faculty = req.query.faculty as string | undefined;
+    const difficulty = req.query.difficulty as string | undefined;
+    const where: Record<string, string> = {};
 
     if (faculty) where.faculty = faculty;
     if (difficulty) where.difficultyLevel = difficulty;
