@@ -27,8 +27,9 @@ router.get(
   "/:userId",
   authenticate,
   asyncWrap(async (req: Request, res: Response) => {
+    const userId = req.params.userId as string;
     const recommendations = await prisma.recommendation.findMany({
-      where: { userId: req.params.userId },
+      where: { userId },
       include: {
         department: {
           select: {
@@ -52,8 +53,9 @@ router.get(
   "/:userId/history",
   authenticate,
   asyncWrap(async (req: Request, res: Response) => {
+    const userId = req.params.userId as string;
     const recommendations = await prisma.recommendation.findMany({
-      where: { userId: req.params.userId },
+      where: { userId },
       include: { department: true },
       orderBy: { createdAt: "desc" },
       take: 20,

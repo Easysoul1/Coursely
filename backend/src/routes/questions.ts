@@ -36,11 +36,12 @@ router.patch(
   authorize("ADMIN"),
   validate({ body: updateQuestionSchema }),
   asyncWrap(async (req: Request, res: Response) => {
-    const existing = await prisma.question.findUnique({ where: { id: req.params.id } });
+    const id = req.params.id as string;
+    const existing = await prisma.question.findUnique({ where: { id } });
     if (!existing) throw new NotFoundError("Question");
 
     const question = await prisma.question.update({
-      where: { id: req.params.id },
+      where: { id },
       data: req.body,
     });
 
@@ -53,10 +54,11 @@ router.delete(
   authenticate,
   authorize("ADMIN"),
   asyncWrap(async (req: Request, res: Response) => {
-    const existing = await prisma.question.findUnique({ where: { id: req.params.id } });
+    const id = req.params.id as string;
+    const existing = await prisma.question.findUnique({ where: { id } });
     if (!existing) throw new NotFoundError("Question");
 
-    await prisma.question.delete({ where: { id: req.params.id } });
+    await prisma.question.delete({ where: { id } });
     res.status(204).send();
   }),
 );

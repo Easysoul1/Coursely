@@ -32,20 +32,21 @@ router.post(
       throw new ValidationError("Assessment already submitted. Use retake endpoint to resubmit.");
     }
 
+    type AnswerInput = { questionId: string; answer: string; score: number };
     const questions = await prisma.question.findMany({
-      where: { id: { in: answers.map((a: any) => a.questionId) } },
+      where: { id: { in: (answers as AnswerInput[]).map((item) => item.questionId) } },
     });
 
-    const questionMap = new Map(questions.map((q) => [q.id, q]));
+    const questionMap = new Map(questions.map((item) => [item.id, item]));
 
-    for (const answer of answers) {
+    for (const answer of answers as AnswerInput[]) {
       if (!questionMap.has(answer.questionId)) {
         throw new ValidationError(`Question ${answer.questionId} not found`);
       }
     }
 
     await prisma.answer.createMany({
-      data: answers.map((a: any) => ({
+      data: (answers as AnswerInput[]).map((a) => ({
         userId,
         questionId: a.questionId,
         answer: a.answer,
@@ -54,12 +55,14 @@ router.post(
     });
 
     const categoryScores: Record<string, number[]> = {};
-    for (const answer of answers) {
-      const question = questionMap.get(answer.questionId)!;
-      if (!categoryScores[question.category]) {
-        categoryScores[question.category] = [];
+    for (const answer of answers as AnswerInput[]) {
+      const question = questionMap.get(answer.questionId);
+      if (!question) continue;
+      const cat = question.category;
+      if (!categoryScores[cat]) {
+        categoryScores[cat] = [];
       }
-      categoryScores[question.category].push(answer.score * question.weight);
+      categoryScores[cat].push(answer.score * question.weight);
     }
 
     const result = Object.entries(categoryScores).map(([category, scores]) => ({
@@ -79,7 +82,7 @@ router.get(
   "/result/:id",
   authenticate,
   asyncWrap(async (req: Request, res: Response) => {
-    const userId = req.params.id;
+    const userId = req.params.id as string;
 
     const answers = await prisma.answer.findMany({
       where: { userId },

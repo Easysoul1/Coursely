@@ -31,8 +31,9 @@ router.get(
 router.get(
   "/:id",
   asyncWrap(async (req: Request, res: Response) => {
+    const id = req.params.id as string;
     const department = await prisma.department.findUnique({
-      where: { id: req.params.id },
+      where: { id },
       include: { scoringRules: true },
     });
 
@@ -61,11 +62,12 @@ router.patch(
   authorize("ADMIN"),
   validate({ body: updateDepartmentSchema }),
   asyncWrap(async (req: Request, res: Response) => {
-    const existing = await prisma.department.findUnique({ where: { id: req.params.id } });
+    const id = req.params.id as string;
+    const existing = await prisma.department.findUnique({ where: { id } });
     if (!existing) throw new NotFoundError("Department");
 
     const department = await prisma.department.update({
-      where: { id: req.params.id },
+      where: { id },
       data: req.body,
     });
 
@@ -78,10 +80,11 @@ router.delete(
   authenticate,
   authorize("ADMIN"),
   asyncWrap(async (req: Request, res: Response) => {
-    const existing = await prisma.department.findUnique({ where: { id: req.params.id } });
+    const id = req.params.id as string;
+    const existing = await prisma.department.findUnique({ where: { id } });
     if (!existing) throw new NotFoundError("Department");
 
-    await prisma.department.delete({ where: { id: req.params.id } });
+    await prisma.department.delete({ where: { id } });
     res.status(204).send();
   }),
 );

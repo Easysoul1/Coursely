@@ -12,12 +12,12 @@ router.get(
   authorize("ADMIN"),
   asyncWrap(async (_req: Request, res: Response) => {
     const [totalStudents, totalDepartments, totalAssessments, totalRecommendations] =
-      await Promise.all([
+      (await Promise.all([
         prisma.user.count({ where: { role: "STUDENT" } }),
         prisma.department.count(),
-        prisma.answer.groupBy({ by: ["userId"] }).then((r) => r.length),
+        prisma.answer.groupBy({ by: ["userId"] }).then((result) => result.length),
         prisma.recommendation.count(),
-      ]);
+      ])) as [number, number, number, number];
 
     const popularDepartments = await prisma.recommendation.groupBy({
       by: ["departmentId"],
@@ -26,23 +26,23 @@ router.get(
       take: 10,
     });
 
-    const deptIds = popularDepartments.map((d) => d.departmentId);
+    const deptIds = popularDepartments.map((entry) => entry.departmentId);
     const depts = await prisma.department.findMany({
       where: { id: { in: deptIds } },
       select: { id: true, name: true, faculty: true },
     });
-    const deptMap = new Map(depts.map((d) => [d.id, d]));
+    const deptMap = new Map(depts.map((entry) => [entry.id, entry]));
 
-    const topDepartments = popularDepartments.map((d) => ({
-      department: deptMap.get(d.departmentId) || {
-        id: d.departmentId,
+    const topDepartments = popularDepartments.map((entry) => ({
+      department: deptMap.get(entry.departmentId) || {
+        id: entry.departmentId,
         name: "Unknown",
         faculty: "",
       },
-      recommendationCount: d._count.departmentId,
+      recommendationCount: entry._count.departmentId,
     }));
 
-    const registrationsByMonth = await prisma.$queryRaw`
+    const registrationsByMonth = await prisma.$queryRaw<Array<{ month: Date; count: bigint }>>`
       SELECT DATE_TRUNC('month', "created_at") as month, COUNT(*) as count
       FROM "User"
       WHERE "role" = 'STUDENT'
