@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { asyncWrap } from "../middleware/async-wrap";
 import { validate } from "../middleware/validate";
@@ -60,6 +61,37 @@ router.delete(
 
     await prisma.question.delete({ where: { id } });
     res.status(204).send();
+  }),
+);
+
+const reorderSchema = z.object({
+  category: z.enum(["ACADEMIC", "CAREER", "PERSONALITY", "LEARNING_STYLE", "GOAL"]),
+  questionIds: z.array(z.string()),
+});
+
+router.post(
+  "/reorder",
+  authenticate,
+  authorize("ADMIN"),
+  validate({ body: reorderSchema }),
+  asyncWrap(async (req: Request, res: Response) => {
+    const { category, questionIds } = req.body;
+
+    await prisma.$transaction(
+      questionIds.map((id: string, index: number) =>
+        prisma.question.update({
+          where: { id },
+          data: { weight: questionIds.length - index },
+        }),
+      ),
+    );
+
+    const questions = await prisma.question.findMany({
+      where: { category },
+      orderBy: { weight: "desc" },
+    });
+
+    res.json({ questions });
   }),
 );
 

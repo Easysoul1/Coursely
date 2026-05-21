@@ -28,13 +28,15 @@ enum QuestionType {
 
 model User {
   id        String   @id @default(cuid())
+  clerkId   String?  @unique @map("clerk_id")
   name      String
   email     String   @unique
   password  String
   role      Role     @default(STUDENT)
   createdAt DateTime @default(now())
-  answers          Answer[]
-  recommendations  Recommendation[]
+  answers              Answer[]
+  recommendations      Recommendation[]
+  savedRecommendations SavedRecommendation[]
 }
 
 model Department {
@@ -47,8 +49,9 @@ model Department {
   difficultyLevel  String  @map("difficulty_level")
   careerPaths      String  @map("career_paths")
   studyDuration    String  @map("study_duration")
-  scoringRules     ScoringRule[]
-  recommendations  Recommendation[]
+  scoringRules         ScoringRule[]
+  recommendations      Recommendation[]
+  savedRecommendations SavedRecommendation[]
 }
 
 model Question {
@@ -91,4 +94,19 @@ model ScoringRule {
   factor       String
   weight       Int
   department   Department @relation(fields: [departmentId], references: [id])
+}
+
+model SavedRecommendation {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  departmentId String   @map("department_id")
+  savedAt      DateTime @default(now()) @map("saved_at")
+  notes        String   @default("")
+  folder       String   @default("")
+
+  user       User       @relation(fields: [userId], references: [id])
+  department Department @relation(fields: [departmentId], references: [id])
+
+  @@unique([userId, departmentId])
+  @@map("saved_recommendations")
 }

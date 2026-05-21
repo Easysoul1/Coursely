@@ -4,7 +4,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 
 export default tseslint.config(
-  { ignores: ["**/dist/**", "**/.next/**", "**/node_modules/**", "**/prisma/generated/**"] },
+  { ignores: ["**/dist/**", "**/.next/**", "**/next-env.d.ts", "**/node_modules/**", "**/prisma/generated/**"] },
   {
     extends: [...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
@@ -25,6 +25,7 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
       "@typescript-eslint/no-namespace": "off",
+      "react-hooks/set-state-in-effect": "off",
     },
   },
 );

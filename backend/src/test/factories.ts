@@ -98,6 +98,7 @@ export async function createTestScoringRule(
 }
 
 export async function cleanupDatabase() {
+  await prisma.savedRecommendation.deleteMany();
   await prisma.answer.deleteMany();
   await prisma.recommendation.deleteMany();
   await prisma.scoringRule.deleteMany();
