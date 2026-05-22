@@ -1,12 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAssessmentStore } from "@/stores/assessment-store";
-import { useAssessmentQuestions, submitAssessment } from "@/hooks/use-assessment";
+import {
+  useAssessmentQuestions,
+  useAssessmentResult,
+  submitAssessment,
+} from "@/hooks/use-assessment";
+import { generateRecommendations } from "@/hooks/use-recommendations";
+import { useAuth } from "@/hooks/use-auth";
 import { Loader2, ArrowLeft, ArrowRight, Check } from "lucide-react";
 
 const categoryLabels: Record<string, string> = {
@@ -19,9 +25,21 @@ const categoryLabels: Record<string, string> = {
 
 export default function QuestionnairePage() {
   const router = useRouter();
+  const { user } = useAuth();
   const { questions, loading: questionsLoading, error: questionsError } = useAssessmentQuestions();
+  const { result: existingResult, loading: resultLoading } = useAssessmentResult(user?.id);
   const store = useAssessmentStore();
   const [submitting, setSubmitting] = useState(false);
+  const [redirected, setRedirected] = useState(false);
+
+  useEffect(() => {
+    if (redirected) return;
+    if (resultLoading) return;
+    if (existingResult && !store.isComplete) {
+      setRedirected(true);
+      router.replace("/dashboard/student/results");
+    }
+  }, [existingResult, resultLoading, store.isComplete, router, redirected]);
 
   const currentQuestion = questions[store.currentStep];
   const progress = questions.length > 0 ? ((store.currentStep + 1) / questions.length) * 100 : 0;
@@ -50,10 +68,17 @@ export default function QuestionnairePage() {
     setSubmitting(true);
     try {
       await submitAssessment(store.answers);
+      await generateRecommendations();
       store.setComplete(true);
       router.push("/dashboard/student/results");
-    } catch {
-      // Error handled by store/component state
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (message.includes("already submitted")) {
+        router.push("/dashboard/student/results");
+      } else {
+        store.reset();
+        router.push("/dashboard/student/assessment");
+      }
     } finally {
       setSubmitting(false);
     }

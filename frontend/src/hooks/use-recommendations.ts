@@ -33,7 +33,13 @@ export function useRecommendations(userId: string | undefined) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
 
     api
       .get<{ recommendations: Recommendation[] }>(`/api/recommendations/${userId}`)
