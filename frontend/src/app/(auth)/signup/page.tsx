@@ -1,18 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { useSignUp, useClerk } from "@clerk/nextjs";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { GraduationCap } from "lucide-react";
-import { exchangeClerkToken } from "@/lib/api";
+import { api } from "@/lib/api";
 
 export default function SignupPage() {
-  const { isLoaded, signUp, setActive } = useSignUp();
-  const { client } = useClerk();
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -23,7 +21,6 @@ export default function SignupPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!isLoaded) return;
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
@@ -34,32 +31,26 @@ export default function SignupPage() {
     setError("");
 
     try {
-      const result = await signUp.create({
-        firstName: name,
-        emailAddress: email,
+      await api.post("/api/auth/register", { name, email, password });
+
+      const result = await signIn("credentials", {
+        email,
         password,
+        redirect: false,
       });
 
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-
-        const activeSession = client.activeSessions?.find((s) => s.id === result.createdSessionId);
-        const clerkToken = await activeSession?.getToken();
-        if (clerkToken) {
-          await exchangeClerkToken(clerkToken);
-        }
-
+      if (result?.ok) {
         router.push("/dashboard/student");
       } else {
-        // Email verification required
-        await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-        router.push("/verify-email");
+        setError("Account created but sign in failed. Please try logging in.");
       }
     } catch (err) {
-      setError(
-        (err as { errors?: Array<{ message: string }> }).errors?.[0]?.message ||
-          "Something went wrong",
-      );
+      const apiErr = err as { message?: string; details?: { issues?: Array<{ message: string }> } };
+      if (apiErr.details?.issues) {
+        setError(apiErr.details.issues[0]?.message || "Validation failed");
+      } else {
+        setError(apiErr.message || "Something went wrong");
+      }
     } finally {
       setLoading(false);
     }

@@ -16,30 +16,6 @@ class ApiError extends Error {
   }
 }
 
-export async function exchangeClerkToken(clerkToken: string): Promise<{
-  user: { id: string; name: string; email: string; role: "STUDENT" | "ADMIN" };
-  token: string;
-}> {
-  const response = await fetch(`${API_BASE}/api/auth/clerk-exchange`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ clerkToken }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: "Exchange failed" }));
-    throw new ApiError(error.message || "Token exchange failed", response.status, error);
-  }
-
-  const data = await response.json();
-
-  if (typeof window !== "undefined") {
-    localStorage.setItem("token", data.token);
-  }
-
-  return data;
-}
-
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { params, ...fetchOptions } = options;
 

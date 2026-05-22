@@ -1,3 +1,1 @@
-
-# clerk configuration (can include secrets)
-/.clerk/
+# next-auth secret can be in .env.local

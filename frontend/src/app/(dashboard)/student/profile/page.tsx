@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "next-auth/react";
 import { useAuth } from "@/hooks/use-auth";
 import { useAuthStore } from "@/stores/auth-store";
 import { api } from "@/lib/api";
@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { User, Mail, Shield, Calendar, Loader2, Check, AlertTriangle } from "lucide-react";
 
 export default function ProfilePage() {
-  const { user: clerkUser } = useUser();
+  const { data: session } = useSession();
   const { user } = useAuth();
   const setUser = useAuthStore((s) => s.setUser);
   const [name, setName] = useState(user?.name || "");
@@ -125,7 +125,7 @@ export default function ProfilePage() {
             <label className="text-sm font-medium flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" /> Member Since
             </label>
-            <Input value={clerkUser?.createdAt?.toLocaleDateString() || "N/A"} readOnly />
+            <Input value={session?.user?.email ? "Member" : "N/A"} readOnly />
           </div>
 
           {isEditing ? (
@@ -143,19 +143,6 @@ export default function ProfilePage() {
               Edit Profile
             </Button>
           )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Account Actions</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Button variant="outline" className="w-full" asChild>
-            <a href="https://clerk.com" target="_blank" rel="noopener noreferrer">
-              Manage Account (Clerk)
-            </a>
-          </Button>
         </CardContent>
       </Card>
     </div>

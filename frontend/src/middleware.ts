@@ -1,18 +1,33 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { withAuth } from "next-auth/middleware";
+import { NextResponse } from "next/server";
 
-const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
+export default withAuth(
+  function middleware(req) {
+    const token = req.nextauth.token;
+    const pathname = req.nextUrl.pathname;
 
-const isAdminRoute = createRouteMatcher(["/dashboard/admin(.*)"]);
+    const isAdminRoute = pathname.startsWith("/dashboard/admin");
 
-export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) {
-    const session = await auth.protect();
-
-    if (isAdminRoute(req) && session.sessionClaims?.role !== "ADMIN") {
-      return Response.redirect(new URL("/dashboard/student", req.url));
+    if (isAdminRoute && token?.role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/dashboard/student", req.url));
     }
-  }
-});
+
+    return NextResponse.next();
+  },
+  {
+    callbacks: {
+      authorized({ token, req }) {
+        const pathname = req.nextUrl.pathname;
+
+        if (pathname.startsWith("/dashboard")) {
+          return !!token;
+        }
+
+        return true;
+      },
+    },
+  },
+);
 
 export const config = {
   matcher: ["/((?!_next|static|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico)).*)"],

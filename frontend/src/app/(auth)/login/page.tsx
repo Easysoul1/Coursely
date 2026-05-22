@@ -1,18 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useSignIn, useClerk } from "@clerk/nextjs";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { GraduationCap } from "lucide-react";
-import { exchangeClerkToken } from "@/lib/api";
 
 export default function LoginPage() {
-  const { isLoaded, signIn, setActive } = useSignIn();
-  const { client } = useClerk();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,33 +18,27 @@ export default function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!isLoaded) return;
 
     setLoading(true);
     setError("");
 
     try {
-      const result = await signIn.create({
-        identifier: email,
+      const result = await signIn("credentials", {
+        email,
         password,
+        redirect: false,
       });
 
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
+      if (result?.error) {
+        setError("Invalid email or password");
+        return;
+      }
 
-        const activeSession = client.activeSessions?.find((s) => s.id === result.createdSessionId);
-        const clerkToken = await activeSession?.getToken();
-        if (clerkToken) {
-          await exchangeClerkToken(clerkToken);
-        }
-
+      if (result?.ok) {
         router.push("/dashboard/student");
       }
-    } catch (err) {
-      setError(
-        (err as { errors?: Array<{ message: string }> }).errors?.[0]?.message ||
-          "Invalid email or password",
-      );
+    } catch {
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

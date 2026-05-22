@@ -1,43 +1,48 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useUser, useClerk } from "@clerk/nextjs";
+import { useSession, signOut } from "next-auth/react";
 import { useAuthStore } from "@/stores/auth-store";
-import { exchangeClerkToken } from "@/lib/api";
 
 export function useAuth() {
-  const { user: clerkUser, isLoaded, isSignedIn } = useUser();
-  const { client } = useClerk();
+  const { data: session, status } = useSession();
   const { user, setUser, setLoading, logout } = useAuthStore();
   const exchangedRef = useRef(false);
+
+  const isLoaded = status !== "loading";
+  const isSignedIn = status === "authenticated";
 
   useEffect(() => {
     setLoading(!isLoaded);
 
-    if (isLoaded && isSignedIn && clerkUser) {
+    if (isLoaded && isSignedIn && session?.user) {
+      const u = session.user as {
+        id: string;
+        name?: string | null;
+        email?: string | null;
+        role: string;
+        backendToken: string;
+      };
+
       setUser({
-        id: clerkUser.id,
-        name: clerkUser.fullName || clerkUser.emailAddresses[0]?.emailAddress || "User",
-        email: clerkUser.emailAddresses[0]?.emailAddress || "",
-        role: (clerkUser.publicMetadata?.role as "STUDENT" | "ADMIN") || "STUDENT",
+        id: u.id,
+        name: u.name || u.email || "User",
+        email: u.email || "",
+        role: (u.role as "STUDENT" | "ADMIN") || "STUDENT",
       });
 
       const tokenInStorage = typeof window !== "undefined" && localStorage.getItem("token");
-      if (!tokenInStorage && !exchangedRef.current) {
+      if (!tokenInStorage && !exchangedRef.current && u.backendToken) {
         exchangedRef.current = true;
-        const activeSession = client.activeSessions?.[0];
-        activeSession?.getToken().then((clerkToken: string | null) => {
-          if (clerkToken) {
-            exchangeClerkToken(clerkToken).catch(() => {
-              exchangedRef.current = false;
-            });
-          }
-        });
+        localStorage.setItem("token", u.backendToken);
       }
     } else if (isLoaded && !isSignedIn) {
       logout();
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+      }
     }
-  }, [isLoaded, isSignedIn, clerkUser, setUser, setLoading, logout, client.activeSessions]);
+  }, [isLoaded, isSignedIn, session, setUser, setLoading, logout]);
 
   return { user, isLoaded, isSignedIn, isLoading: !isLoaded };
 }

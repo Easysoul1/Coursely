@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useUser, useClerk } from "@clerk/nextjs";
+import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -14,8 +14,8 @@ const navLinks = [
 ];
 
 export function Header() {
-  const { isSignedIn } = useUser();
-  const { signOut } = useClerk();
+  const { data: session } = useSession();
+  const isSignedIn = !!session;
 
   return (
     <header className="border-b sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

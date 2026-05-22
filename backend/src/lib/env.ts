@@ -6,8 +6,6 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(1),
   JWT_EXPIRES_IN: z.string().default("7d"),
   FRONTEND_URL: z.string().url().default("http://localhost:3000"),
-  CLERK_SECRET_KEY: z.string().optional(),
-  CLERK_WEBHOOK_SECRET: z.string().optional(),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });
 
