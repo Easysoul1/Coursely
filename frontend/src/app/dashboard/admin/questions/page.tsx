@@ -139,7 +139,10 @@ export default function QuestionsPage() {
     setSaving(true);
     try {
       const payload = {
-        ...form,
+        question: form.text,
+        category: form.category,
+        type: form.type,
+        weight: form.weight,
         options: form.type === "MULTIPLE_CHOICE" ? form.options : undefined,
       };
       if (editingId) {
@@ -331,7 +334,7 @@ export default function QuestionsPage() {
       ))}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingId ? "Edit Question" : "Add Question"}</DialogTitle>
             <DialogDescription>

@@ -93,6 +93,15 @@ export default function DepartmentsPage() {
     setDialogOpen(true);
   };
 
+  const parseListField = (value: string) => {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed.join(", ") : value;
+    } catch {
+      return value;
+    }
+  };
+
   const openEdit = (dept: Department) => {
     setEditingId(dept.id);
     setForm({
@@ -100,9 +109,9 @@ export default function DepartmentsPage() {
       faculty: dept.faculty,
       description: dept.description,
       cutoffMark: dept.cutoffMark,
-      requiredSubjects: dept.requiredSubjects,
+      requiredSubjects: parseListField(dept.requiredSubjects),
       difficultyLevel: dept.difficultyLevel,
-      careerPaths: dept.careerPaths,
+      careerPaths: parseListField(dept.careerPaths),
       studyDuration: dept.studyDuration,
     });
     setDialogOpen(true);
@@ -113,13 +122,32 @@ export default function DepartmentsPage() {
     setDeleteDialogOpen(true);
   };
 
+  const toJsonList = (value: string) => {
+    try {
+      JSON.parse(value);
+      return value;
+    } catch {
+      return JSON.stringify(
+        value
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      );
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
+      const payload = {
+        ...form,
+        requiredSubjects: toJsonList(form.requiredSubjects),
+        careerPaths: toJsonList(form.careerPaths),
+      };
       if (editingId) {
-        await api.patch(`/api/departments/${editingId}`, form);
+        await api.patch(`/api/departments/${editingId}`, payload);
       } else {
-        await api.post("/api/departments", form);
+        await api.post("/api/departments", payload);
       }
       setDialogOpen(false);
       fetchDepartments();
