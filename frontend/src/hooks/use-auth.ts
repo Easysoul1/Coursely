@@ -31,8 +31,7 @@ export function useAuth() {
         role: (u.role as "STUDENT" | "ADMIN") || "STUDENT",
       });
 
-      const tokenInStorage = typeof window !== "undefined" && localStorage.getItem("token");
-      if (!tokenInStorage && !exchangedRef.current && u.backendToken) {
+      if (u.backendToken && !exchangedRef.current) {
         exchangedRef.current = true;
         localStorage.setItem("token", u.backendToken);
       }
