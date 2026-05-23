@@ -3,6 +3,7 @@
 import { useAuthStore } from "@/stores/auth-store";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -74,6 +75,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             className="w-full justify-start text-muted-foreground"
             onClick={() => {
               logout();
+              signOut({ redirect: false });
               router.push("/");
             }}
           >
