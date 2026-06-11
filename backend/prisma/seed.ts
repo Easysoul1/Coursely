@@ -433,10 +433,15 @@ async function main() {
     console.log(`Created department: ${deptData.name} (${deptData.faculty})`);
   }
 
-  for (const q of QUESTIONS) {
-    await prisma.question.create({ data: q });
+  const existingQuestionCount = await prisma.question.count();
+  if (existingQuestionCount === 0) {
+    for (const q of QUESTIONS) {
+      await prisma.question.create({ data: q });
+    }
+    console.log(`Created ${QUESTIONS.length} assessment questions`);
+  } else {
+    console.log(`Skipping questions — ${existingQuestionCount} already exist`);
   }
-  console.log(`Created ${QUESTIONS.length} assessment questions`);
 
   console.log("Seeding complete!");
 }
