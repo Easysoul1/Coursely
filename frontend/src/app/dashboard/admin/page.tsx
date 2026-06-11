@@ -47,7 +47,9 @@ export default function AdminDashboard() {
       const data = await api.get<AnalyticsData>("/api/admin/analytics");
       setStats(data.overview);
       setRegistrations(data.registrationsByMonth || []);
-    } catch {
+    } catch (err) {
+      console.error("Failed to fetch admin stats:", err);
+      setError("Failed to load analytics data");
       setStats({
         totalStudents: 0,
         totalAssessments: 0,

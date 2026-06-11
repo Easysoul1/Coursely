@@ -117,7 +117,7 @@ router.get(
       }))
       .sort((a, b) => b.averageScore - a.averageScore);
 
-    const registrationsByMonth = await prisma.$queryRaw<Array<{ month: Date; count: bigint }>>`
+    const rawRegistrations = await prisma.$queryRaw<Array<{ month: Date; count: bigint }>>`
       SELECT DATE_TRUNC('month', "created_at") as month, COUNT(*) as count
       FROM "User"
       WHERE "role" = 'STUDENT'
@@ -125,6 +125,10 @@ router.get(
       ORDER BY month DESC
       LIMIT 12
     `;
+    const registrationsByMonth = rawRegistrations.map((r) => ({
+      month: r.month,
+      count: Number(r.count),
+    }));
 
     const allFaculties = await prisma.department.findMany({
       select: { faculty: true },

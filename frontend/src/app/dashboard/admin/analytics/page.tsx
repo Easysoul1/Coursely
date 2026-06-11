@@ -99,7 +99,8 @@ export default function AnalyticsPage() {
 
       const res = await api.get<AnalyticsData>("/api/admin/analytics", { params });
       setData(res);
-    } catch {
+    } catch (err) {
+      console.error("Failed to fetch analytics:", err);
       setError("Failed to load analytics data");
     } finally {
       setLoading(false);
