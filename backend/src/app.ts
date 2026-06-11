@@ -36,4 +36,6 @@ app.get("/health", (_req, res) => {
 
 app.use(errorHandler);
 
+app.set('trust proxy', 1);
+
 export default app;
