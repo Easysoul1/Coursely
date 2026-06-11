@@ -9,7 +9,7 @@ import logger from "./lib/logger";
 const app = express();
 
 app.use(helmet());
-const allowedOrigins = (process.env.FRONTEND_URL || "https://coursely-phi.vercel.app")
+const allowedOrigins = (process.env.FRONTEND_URL || "https://coursely-phi.vercel.app" || "https://localhost:3000")
   .split(",")
   .map((s) => s.trim());
 app.use(cors({ origin: allowedOrigins, credentials: true }));

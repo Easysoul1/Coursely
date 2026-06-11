@@ -25,10 +25,13 @@ RUN adduser --system --uid 1001 express
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=build /app/node_modules/prisma ./node_modules/prisma
+COPY --from=build /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 COPY --from=build /app/prisma ./prisma
 COPY package.json ./
+COPY --chmod=755 start.sh ./
 
 USER express
 EXPOSE 4000
 
-CMD ["node", "dist/index.js"]
+CMD ["/app/start.sh"]
