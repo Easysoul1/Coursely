@@ -26,36 +26,49 @@ const factorResolvers: FactorResolver[] = [
     factor: "mathematics_strength",
     weight: 25,
     resolve: (answers) =>
-      averageScoreByKeywords(answers, ["mathematics", "math", "calculation", "logic"]),
+      averageScoreByKeywords(answers, ["mathematics", "math", "calculation", "logic", "physics"]),
   },
   {
     factor: "biology_strength",
     weight: 20,
-    resolve: (answers) => averageScoreByKeywords(answers, ["biology", "life science", "living"]),
+    resolve: (answers) =>
+      averageScoreByKeywords(answers, ["biology", "life science", "living", "chemistry"]),
   },
   {
     factor: "logical_reasoning",
     weight: 15,
     resolve: (answers) =>
-      averageScoreByKeywords(answers, ["logic", "reasoning", "problem solving", "critical"]),
+      averageScoreByKeywords(answers, [
+        "logic", "reasoning", "problem", "puzzle", "complex",
+        "detail", "careful", "critical", "solve",
+      ]),
   },
   {
     factor: "communication_skill",
     weight: 10,
     resolve: (answers) =>
-      averageScoreByKeywords(answers, ["communication", "writing", "verbal", "expression"]),
+      averageScoreByKeywords(answers, [
+        "communication", "writing", "verbal", "expression",
+        "team", "patient", "health",
+      ]),
   },
   {
     factor: "interest_alignment",
     weight: 20,
     resolve: (answers) =>
-      averageScoreByKeywords(answers, ["career", "interest", "goal", "ambition"]),
+      averageScoreByKeywords(answers, [
+        "career", "interest", "goal", "ambition",
+        "engineer", "technology", "software", "professional",
+      ]),
   },
   {
     factor: "study_tolerance",
     weight: 10,
     resolve: (answers) =>
-      averageScoreByKeywords(answers, ["study", "tolerance", "discipline", "dedication"]),
+      averageScoreByKeywords(answers, [
+        "study", "tolerance", "discipline", "dedication",
+        "practical", "concentrat", "memoriz", "stress", "challenge",
+      ]),
   },
 ];
 
