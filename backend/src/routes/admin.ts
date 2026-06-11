@@ -118,7 +118,7 @@ router.get(
       .sort((a, b) => b.averageScore - a.averageScore);
 
     const rawRegistrations = await prisma.$queryRaw<Array<{ month: Date; count: bigint }>>`
-      SELECT DATE_TRUNC('month', "created_at") as month, COUNT(*) as count
+      SELECT DATE_TRUNC('month', "createdAt") as month, COUNT(*) as count
       FROM "User"
       WHERE "role" = 'STUDENT'
       GROUP BY month
